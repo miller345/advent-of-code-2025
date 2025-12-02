@@ -56,3 +56,47 @@ let partOne =
     |> Array.sum
 
 log partOne
+
+
+
+
+let isInvalidId2 (id: int64) =
+    let str = id.ToString()
+
+    let possiblePatterns =
+        [ 1 .. str.Length / 2 ]
+        |> List.map (fun n -> str.[0 .. n - 1])
+        |> List.map (fun h -> String.replicate (str.Length / h.Length) h)
+
+    List.contains str possiblePatterns
+
+let rec getNextInvalidId2 (from: int64) =
+    let x = from + int64 1
+    if isInvalidId2 x then x else getNextInvalidId2 x
+
+
+let rec findInvalidIds2 ((rangeFrom, rangeTo): int64 * int64, invalidIds: int64 array) =
+    if invalidIds.Length = 0 && isInvalidId2 rangeFrom then
+        findInvalidIds2 ((rangeFrom, rangeTo), [| rangeFrom |])
+    else
+        let nextInvalidId =
+            match invalidIds.Length with
+            | 0 -> getNextInvalidId2 rangeFrom
+            | _ -> getNextInvalidId2 invalidIds.[invalidIds.Length - 1]
+
+        if nextInvalidId >= rangeFrom && nextInvalidId <= rangeTo then
+            findInvalidIds2 ((rangeFrom, rangeTo), Array.append invalidIds [| nextInvalidId |])
+        else
+            invalidIds
+
+
+let partTwo =
+    System.IO.File.ReadAllText("2.txt").Split(",")
+    |> Array.toList
+    |> List.map (fun s -> s.Split("-") |> Array.map int64 |> (fun arr -> arr.[0], arr.[1]))
+    |> List.map (fun range -> findInvalidIds2 (range, [||]))
+    |> List.toArray
+    |> Array.concat
+    |> Array.sum
+
+log partTwo
