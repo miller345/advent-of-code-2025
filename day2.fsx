@@ -1,9 +1,5 @@
-let log x =
-    printfn "%A" x
-    x // return value so it works in pipelines
-
-
-let isInvalidId (id: int64) =
+// is it invalid (part 1)
+let isInvalid_1 (id: int64) =
     let str = id.ToString()
 
     if str.Length % 2 = 1 then
@@ -12,8 +8,8 @@ let isInvalidId (id: int64) =
         let mid = str.Length / 2
         str.[0 .. mid - 1] = str.[mid..]
 
-// get the next invalid id greater than the given arg
-let getNextInvalidId (from: int64) =
+// get the next invalid id greater than the given arg (part 1)
+let getNextInvalid_1 (from: int64) =
     let str = from.ToString()
 
     if str.Length % 2 = 0 then
@@ -31,36 +27,8 @@ let getNextInvalidId (from: int64) =
         |> String.replicate 2
         |> int64
 
-let rec findInvalidIds ((rangeFrom, rangeTo): int64 * int64, invalidIds: int64 array) =
-    if invalidIds.Length = 0 && isInvalidId rangeFrom then
-        findInvalidIds ((rangeFrom, rangeTo), [| rangeFrom |])
-    else
-        let nextInvalidId =
-            match invalidIds.Length with
-            | 0 -> getNextInvalidId rangeFrom
-            | _ -> getNextInvalidId invalidIds.[invalidIds.Length - 1]
-
-        if nextInvalidId >= rangeFrom && nextInvalidId <= rangeTo then
-            findInvalidIds ((rangeFrom, rangeTo), Array.append invalidIds [| nextInvalidId |])
-        else
-            invalidIds
-
-
-let partOne =
-    System.IO.File.ReadAllText("2.txt").Split(",")
-    |> Array.toList
-    |> List.map (fun s -> s.Split("-") |> Array.map int64 |> (fun arr -> arr.[0], arr.[1]))
-    |> List.map (fun range -> findInvalidIds (range, [||]))
-    |> List.toArray
-    |> Array.concat
-    |> Array.sum
-
-log partOne
-
-
-
-
-let isInvalidId2 (id: int64) =
+// is it invalid (part 2)
+let isInvalid_2 (id: int64) =
     let str = id.ToString()
 
     let possiblePatterns =
@@ -70,33 +38,56 @@ let isInvalidId2 (id: int64) =
 
     List.contains str possiblePatterns
 
-let rec getNextInvalidId2 (from: int64) =
+// get the next invalid id greater than the given arg (part 2)
+let rec getNextInvalid_2 (from: int64) =
     let x = from + int64 1
-    if isInvalidId2 x then x else getNextInvalidId2 x
+    if isInvalid_2 x then x else getNextInvalid_2 x
 
-
-let rec findInvalidIds2 ((rangeFrom, rangeTo): int64 * int64, invalidIds: int64 array) =
-    if invalidIds.Length = 0 && isInvalidId2 rangeFrom then
-        findInvalidIds2 ((rangeFrom, rangeTo), [| rangeFrom |])
+// find all invalid ids between given range (generic)
+let rec findInvalidIds
+    (
+        (rangeFrom, rangeTo): int64 * int64,
+        isInvalid: int64 -> bool,
+        getNextInvalid: int64 -> int64,
+        invalidIds: int64 array
+    ) =
+    if invalidIds.Length = 0 && isInvalid rangeFrom then
+        findInvalidIds ((rangeFrom, rangeTo), isInvalid, getNextInvalid, [| rangeFrom |])
     else
         let nextInvalidId =
             match invalidIds.Length with
-            | 0 -> getNextInvalidId2 rangeFrom
-            | _ -> getNextInvalidId2 invalidIds.[invalidIds.Length - 1]
+            | 0 -> getNextInvalid rangeFrom
+            | _ -> getNextInvalid invalidIds.[invalidIds.Length - 1]
 
         if nextInvalidId >= rangeFrom && nextInvalidId <= rangeTo then
-            findInvalidIds2 ((rangeFrom, rangeTo), Array.append invalidIds [| nextInvalidId |])
+            findInvalidIds (
+                (rangeFrom, rangeTo),
+                isInvalid,
+                getNextInvalid,
+                Array.append invalidIds [| nextInvalidId |]
+            )
         else
             invalidIds
 
+// find all invalid ids between given range (part 1)
+let findInvalidIds_1 range =
+    findInvalidIds (range, isInvalid_1, getNextInvalid_1, [||])
 
-let partTwo =
+// find all invalid ids between given range (part 2)
+let findInvalidIds_2 range =
+    findInvalidIds (range, isInvalid_2, getNextInvalid_2, [||])
+
+let parsed =
     System.IO.File.ReadAllText("2.txt").Split(",")
     |> Array.toList
     |> List.map (fun s -> s.Split("-") |> Array.map int64 |> (fun arr -> arr.[0], arr.[1]))
-    |> List.map (fun range -> findInvalidIds2 (range, [||]))
-    |> List.toArray
-    |> Array.concat
-    |> Array.sum
 
-log partTwo
+let partOne =
+    parsed |> List.map findInvalidIds_1 |> List.toArray |> Array.concat |> Array.sum
+
+printfn "partOne: %i" partOne
+
+let partTwo =
+    parsed |> List.map findInvalidIds_2 |> List.toArray |> Array.concat |> Array.sum
+
+printfn "partTwo: %i" partTwo
