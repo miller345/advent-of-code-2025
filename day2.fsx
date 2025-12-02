@@ -44,38 +44,30 @@ let rec getNextInvalid_2 (from: int64) =
     if isInvalid_2 x then x else getNextInvalid_2 x
 
 // find all invalid ids between given range (generic)
-let rec findInvalidIds
-    (
-        (rangeFrom, rangeTo): int64 * int64,
-        isInvalid: int64 -> bool,
-        getNextInvalid: int64 -> int64,
-        invalidIds: int64 array
-    ) =
-    if invalidIds.Length = 0 && isInvalid rangeFrom then
-        findInvalidIds ((rangeFrom, rangeTo), isInvalid, getNextInvalid, [| rangeFrom |])
-    else
-        let nextInvalidId =
-            match invalidIds.Length with
-            | 0 -> getNextInvalid rangeFrom
-            | _ -> getNextInvalid invalidIds.[invalidIds.Length - 1]
-
-        if nextInvalidId >= rangeFrom && nextInvalidId <= rangeTo then
-            findInvalidIds (
-                (rangeFrom, rangeTo),
-                isInvalid,
-                getNextInvalid,
-                Array.append invalidIds [| nextInvalidId |]
-            )
+let findInvalidIds ((rangeFrom, rangeTo): int64 * int64, isInvalid: int64 -> bool, getNextInvalid: int64 -> int64) =
+    let rec loop (invalidIds: int64 array) =
+        if invalidIds.Length = 0 && isInvalid rangeFrom then
+            loop [| rangeFrom |]
         else
-            invalidIds
+            let nextInvalidId =
+                match invalidIds.Length with
+                | 0 -> getNextInvalid rangeFrom
+                | _ -> getNextInvalid invalidIds.[invalidIds.Length - 1]
+
+            if nextInvalidId >= rangeFrom && nextInvalidId <= rangeTo then
+                loop (Array.append invalidIds [| nextInvalidId |])
+            else
+                invalidIds
+
+    loop [||]
 
 // find all invalid ids between given range (part 1)
 let findInvalidIds_1 range =
-    findInvalidIds (range, isInvalid_1, getNextInvalid_1, [||])
+    findInvalidIds (range, isInvalid_1, getNextInvalid_1)
 
 // find all invalid ids between given range (part 2)
 let findInvalidIds_2 range =
-    findInvalidIds (range, isInvalid_2, getNextInvalid_2, [||])
+    findInvalidIds (range, isInvalid_2, getNextInvalid_2)
 
 let parsed =
     System.IO.File.ReadAllText("2.txt").Split(",")
