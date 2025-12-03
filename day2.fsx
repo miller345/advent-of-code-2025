@@ -70,7 +70,7 @@ let findInvalidIds_2 range =
     findInvalidIds (range, isInvalid_2, getNextInvalid_2)
 
 let parsed =
-    System.IO.File.ReadAllText("2.txt").Split(",")
+    System.IO.File.ReadAllText("./inputs/2.txt").Split(",")
     |> Array.toList
     |> List.map (fun s -> s.Split("-") |> Array.map int64 |> (fun arr -> arr.[0], arr.[1]))
 

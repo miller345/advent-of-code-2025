@@ -8,12 +8,9 @@ let parseLine (s: string) =
 // given a starting point, return the result of an integer twist
 let twist from by = (((from + by) % 100) + 100) % 100
 
-let partOne =
-    System.IO.File.ReadAllLines("1.eg.txt")
-    |> Array.map parseLine
-    |> Array.scan twist 50
-    |> Array.filter ((=) 0)
-    |> Array.length
+let parsed = System.IO.File.ReadAllLines "./inputs/1.txt" |> Array.map parseLine
+
+let partOne = parsed |> Array.scan twist 50 |> Array.filter ((=) 0) |> Array.length
 
 printfn "Part one: %i" partOne
 
@@ -41,8 +38,7 @@ let landsOnZero from by =
 let p2 (from, acc) by = (twist from by, landsOnZero from by)
 
 let partTwo =
-    System.IO.File.ReadAllLines("1.txt")
-    |> Array.map parseLine
+    parsed
     |> Array.scan p2 (50, 0)
     |> Array.map (fun (_, zeros) -> zeros)
     |> Array.sum

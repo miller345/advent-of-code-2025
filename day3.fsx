@@ -24,7 +24,7 @@ let findMaxJoltage (targetLength: int) (arr: int array) =
 let parseLine (str: string) =
     str |> Seq.toArray |> Array.map string |> Array.map int
 
-let parsed = System.IO.File.ReadAllLines("3.txt") |> Array.map parseLine
+let parsed = System.IO.File.ReadAllLines("./inputs/3.txt") |> Array.map parseLine
 
 // part 1
 parsed |> Array.map (findMaxJoltage 2) |> Array.sum |> log
