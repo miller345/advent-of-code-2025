@@ -16,15 +16,39 @@ let getNeighbours (y, x) grid =
     |> List.map (fun (y, x) -> grid.[y, x]) // get values
     |> List.toArray
 
+let isRemovable (y, x) grid =
+    let rollCount = getNeighbours (y, x) grid |> Array.filter ((=) "@") |> Array.length
+    rollCount < 4 && grid.[y, x] = "@"
 
-let part1 grid =
+let getNextGridAndRemovedCount grid =
     let mutable count = 0
 
-    for y = 0 to Array2D.length1 grid - 1 do
-        for x = 0 to Array2D.length2 grid - 1 do
-            let rollCount = getNeighbours (y, x) grid |> Array.filter ((=) "@") |> Array.length
-            count <- count + (if rollCount < 4 && grid.[y, x] = "@" then 1 else 0)
+    let nextGrid =
+        grid
+        |> Array2D.mapi (fun y x v ->
+            if isRemovable (y, x) grid then
+                count <- count + 1
+                "x"
+            else
+                v)
 
+    nextGrid, count
+
+let part1 grid =
+    let _, count = getNextGridAndRemovedCount grid
     count
 
 part1 parsed |> log
+
+let part2 grid =
+    let rec loop g acc =
+        let nextGrid, removedCount = getNextGridAndRemovedCount g
+
+        if removedCount > 0 then
+            loop nextGrid (acc + removedCount)
+        else
+            acc
+
+    loop grid 0
+
+part2 parsed |> log
