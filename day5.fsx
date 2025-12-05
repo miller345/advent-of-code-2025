@@ -1,7 +1,9 @@
 #load "utils.fsx"
 open Utils
 
-let isInRange ((rangeFrom, rangeTo): int64 * int64) (ingredient: int64) =
+type Range = int64 * int64
+
+let isInRange ((rangeFrom, rangeTo): Range) (ingredient: int64) =
     ingredient >= rangeFrom && ingredient <= rangeTo
 
 let isFresh ranges ingredient =
@@ -29,3 +31,34 @@ let parsed =
     ranges, ingredients
 
 parsed |> partOne |> log
+
+let doRangesOverlap (r1: Range) (r2: Range) =
+    let r1f, r1t = r1
+    let r2f, r2t = r2
+    isInRange r2 r1f || isInRange r2 r1t || isInRange r1 r2f || isInRange r1 r2t
+
+let combineRanges (r1: Range) (r2: Range) =
+    let r1f, r1t = r1
+    let r2f, r2t = r2
+    min r1f r2f, max r1t r2t
+
+let normaliseRanges (ranges: Range list) =
+    let rec loop (rs: Range list) (acc: Range list) =
+        match rs with
+        | [] -> acc
+        | head :: tail ->
+            let overlaps, noOverlap = tail |> List.partition (doRangesOverlap head)
+
+            match overlaps with
+            | [] -> loop noOverlap (head :: acc)
+            | _ ->
+                let combined = overlaps |> List.fold combineRanges head
+                loop (combined :: noOverlap) acc
+
+
+    loop ranges []
+
+let partTwo (ranges, _) =
+    ranges |> normaliseRanges |> List.map (fun (rf, rt) -> rt - rf + 1L) |> List.sum
+
+parsed |> partTwo |> log
