@@ -37,14 +37,31 @@ let groups =
         |> List.map (String.concat "")
         |> List.map (fun s -> s.Trim()))
 
-let processGroup (group: string list) =
-    let nums = group.[0 .. group.Length - 2] |> List.map int64
-    let op = group[group.Length - 1]
 
+let calc (nums: int64 list) op =
     match op with
     | "+" -> nums |> List.sum
     | "*" -> nums |> List.fold (*) 1
+    | _ -> failwith "unexpexted op"
 
+let processGroup (group: string list) =
+    let nums = group.[0 .. group.Length - 2] |> List.map int64
+    let op = group[group.Length - 1]
+    calc nums op
 
 // part 1
 groups |> List.map processGroup |> List.sum |> log
+
+// part2
+indexRanges
+|> List.map (fun (a, b) ->
+    let nums =
+        [ (if a = 0 then 0 else a + 1) .. b - 1 ]
+        |> List.mapi (fun i x -> grid.[*, x].[0 .. (Array2D.length1 grid - 2)])
+        |> List.map (String.concat "")
+        |> List.map (fun s -> int64 (s.Trim()))
+
+    let op = grid.[Array2D.length1 grid - 1, (if a = 0 then 0 else a + 1)]
+    calc nums op)
+|> List.sum
+|> log
