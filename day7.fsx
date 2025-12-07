@@ -5,7 +5,7 @@ type Grid = char array2d
 
 let parsed =
     let parseLine (str: string) = str |> Seq.toArray // |> Array.map string
-    let parsed = System.IO.File.ReadAllLines "./inputs/7.txt" |> Array.map parseLine
+    let parsed = System.IO.File.ReadAllLines "./inputs/7.eg.txt" |> Array.map parseLine
     let width = parsed.[0].Length
     let height = parsed.Length
     let grid = Array2D.init height width (fun y x -> parsed.[y].[x])
@@ -56,3 +56,17 @@ let part1 (grid: Grid) =
     loop [ (0, findS grid) ] []
 
 parsed |> part1 |> log
+
+let part2 (grid: Grid) =
+    let rec loop y x =
+        let splitPoint = grid |> dropBeam y x
+
+        match splitPoint with
+        | None -> 1
+        | Some splitPoint ->
+            let (ay, ax), (by, bx) = splitPoint |> fun (y, x) -> splitBeamAt y x
+            loop ay ax + loop by bx
+
+    loop 0 (findS grid)
+
+parsed |> part2 |> log
